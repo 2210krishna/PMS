@@ -2,8 +2,9 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import NotificationBell from "./NotificationBell";
+import SettingsMenu from "./SettingsMenu";
 
-export default function SidebarLayout({ title, links, children }) {
+export default function SidebarLayout({ title, links, children, profilePath, settingsPath }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { showToast } = useToast();
@@ -17,20 +18,20 @@ export default function SidebarLayout({ title, links, children }) {
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-teal-800 text-white print:hidden sticky top-0 z-40 shadow">
-        <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
+        <div className="px-4 py-3 flex items-center gap-3">
           <div className="flex items-center gap-3 shrink-0">
-            <span className="font-bold text-lg">HealthNest</span>
-            <span className="text-xs text-teal-200 border-l border-teal-600 pl-3 hidden sm:inline">{title}</span>
+            <span className="font-bold text-lg whitespace-nowrap">HealthNest</span>
+            <span className="text-xs text-teal-200 border-l border-teal-600 pl-3 hidden lg:inline whitespace-nowrap">{title}</span>
           </div>
 
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-1 flex-1 min-w-0 overflow-x-auto scrollbar-hide">
             {links.map((link) => (
               <NavLink
                 key={link.to}
                 to={link.to}
                 end={link.end}
                 className={({ isActive }) =>
-                  `px-3 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition ${
+                  `px-3 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition shrink-0 ${
                     isActive ? "bg-teal-600 text-white" : "text-teal-100 hover:bg-teal-700"
                   }`
                 }
@@ -40,10 +41,11 @@ export default function SidebarLayout({ title, links, children }) {
             ))}
           </nav>
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-2 shrink-0 ml-auto">
             <NotificationBell />
-            <div className="text-right hidden sm:block">
-              <p className="text-sm font-medium leading-tight">{user?.fullName}</p>
+            <SettingsMenu profilePath={profilePath} settingsPath={settingsPath} />
+            <div className="text-right hidden lg:block">
+              <p className="text-sm font-medium leading-tight whitespace-nowrap">{user?.fullName}</p>
               <p className="text-xs text-teal-300 leading-tight">{user?.role}</p>
             </div>
             <button
@@ -62,7 +64,7 @@ export default function SidebarLayout({ title, links, children }) {
               to={link.to}
               end={link.end}
               className={({ isActive }) =>
-                `px-3 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition ${
+                `px-3 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition shrink-0 ${
                   isActive ? "bg-teal-600 text-white" : "text-teal-100 hover:bg-teal-700"
                 }`
               }

@@ -10,7 +10,9 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     List<Appointment> findByDoctorIdOrderByAppointmentDateDesc(Long doctorId);
     List<Appointment> findAllByOrderByAppointmentDateDesc();
     List<Appointment> findByAppointmentDate(LocalDate date);
+    List<Appointment> findByAppointmentDateOrderByTimeSlot(LocalDate date);
     long countByAppointmentDate(LocalDate date);
     long countByAppointmentDateAndStatus(LocalDate date, String status);
+    long countByStatus(String status);
     boolean existsByDoctorIdAndAppointmentDateAndTimeSlotAndStatus(Long doctorId, LocalDate date, String timeSlot, String status);
 }

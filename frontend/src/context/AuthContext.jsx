@@ -27,6 +27,12 @@ export function AuthProvider({ children }) {
     return res.data;
   };
 
+  const googleLogin = async (idToken) => {
+    const res = await axiosClient.post("/auth/google", { idToken });
+    persist(res.data);
+    return res.data;
+  };
+
   const refreshUser = (patch) => {
     const updated = { ...user, ...patch };
     localStorage.setItem("healthnest_user", JSON.stringify(updated));
@@ -40,7 +46,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, login, register, googleLogin, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

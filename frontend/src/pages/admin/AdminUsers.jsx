@@ -4,9 +4,19 @@ import { useToast } from "../../context/ToastContext";
 
 export default function AdminUsers() {
   const [users, setUsers] = useState([]);
+  const [loadError, setLoadError] = useState("");
+  const [loading, setLoading] = useState(true);
   const { showToast } = useToast();
 
-  const load = () => axiosClient.get("/admin/users").then((r) => setUsers(r.data));
+  const load = () => {
+    setLoading(true);
+    setLoadError("");
+    axiosClient.get("/admin/users")
+      .then((r) => setUsers(r.data))
+      .catch((err) => setLoadError(err.response ? `${err.response.status}: ${err.response.data?.message || "Unknown error"}` : err.message))
+      .finally(() => setLoading(false));
+  };
+
   useEffect(load, []);
 
   const toggleUser = async (id) => {
@@ -24,6 +34,12 @@ export default function AdminUsers() {
       <h1 className="text-2xl font-bold text-gray-800 mb-1">All Users</h1>
       <p className="text-gray-500 text-sm mb-6">Every account on the platform, across all roles.</p>
 
+      {loadError && (
+        <div className="bg-red-50 border border-red-300 text-red-700 text-sm p-3 rounded-md mb-6">
+          <strong>Failed to load users:</strong> {loadError}
+        </div>
+      )}
+
       <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
@@ -36,7 +52,8 @@ export default function AdminUsers() {
             </tr>
           </thead>
           <tbody>
-            {users.map((u) => (
+            {loading && <tr><td colSpan={5} className="px-4 py-6 text-center text-gray-400">Loading...</td></tr>}
+            {!loading && users.map((u) => (
               <tr key={u.id} className="border-t">
                 <td className="px-4 py-3 font-medium text-gray-800">{u.fullName}</td>
                 <td className="px-4 py-3 text-gray-600">{u.email}</td>

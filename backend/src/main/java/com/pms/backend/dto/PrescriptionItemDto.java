@@ -12,7 +12,5 @@ public class PrescriptionItemDto {
     private String medicineName;
     private String dosage;
     @NotNull
-    private Integer quantity;
-    @NotNull
-    private Double unitPrice;
+    private Integer durationDays;
 }

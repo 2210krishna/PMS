@@ -31,26 +31,6 @@ public class AdminController {
         return ResponseEntity.ok(adminService.toggleUserEnabled(id));
     }
 
-    @GetMapping("/outbreaks")
-    public ResponseEntity<List<OutbreakAlertResponse>> getAlerts(@RequestParam(required = false) String status) {
-        return ResponseEntity.ok(adminService.getAlerts(status));
-    }
-
-    @PutMapping("/outbreaks/{id}/resolve")
-    public ResponseEntity<OutbreakAlertResponse> resolveAlert(@PathVariable Long id) {
-        return ResponseEntity.ok(adminService.resolveAlert(id));
-    }
-
-    @GetMapping("/analytics/disease-counts")
-    public ResponseEntity<List<DiseaseCountResponse>> diseaseCounts() {
-        return ResponseEntity.ok(adminService.getDiseaseCounts());
-    }
-
-    @GetMapping("/analytics/district-counts")
-    public ResponseEntity<List<DistrictCountResponse>> districtCounts() {
-        return ResponseEntity.ok(adminService.getDistrictCounts());
-    }
-
     @GetMapping("/dashboard-stats")
     public ResponseEntity<DashboardStatsResponse> dashboardStats() {
         return ResponseEntity.ok(adminService.getDashboardStats());

@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ToastProvider } from "./context/ToastContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import PatientCompleteProfile from "./pages/PatientCompleteProfile";
 
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -14,6 +15,7 @@ import PatientProfile from "./pages/patient/PatientProfile";
 import PatientQr from "./pages/patient/PatientQr";
 import PatientHistory from "./pages/patient/PatientHistory";
 import PatientAppointments from "./pages/patient/PatientAppointments";
+import PatientBookAppointment from "./pages/patient/PatientBookAppointment";
 
 import DoctorLayout from "./pages/doctor/DoctorLayout";
 import DoctorPatients from "./pages/doctor/DoctorPatients";
@@ -26,6 +28,11 @@ import AdminPatients from "./pages/admin/AdminPatients";
 import AdminDoctors from "./pages/admin/AdminDoctors";
 import AdminDepartments from "./pages/admin/AdminDepartments";
 import AdminUsers from "./pages/admin/AdminUsers";
+
+
+import AdminTodayAppointments from "./pages/admin/AdminTodayAppointments";
+import AdminProfile from "./pages/admin/AdminProfile";
+import DoctorProfile from "./pages/doctor/DoctorProfile";
 
 function DashboardRouter() {
   const { user } = useAuth();
@@ -49,25 +56,30 @@ export default function App() {
             <Route path="/doctor/complete-profile" element={
               <ProtectedRoute allowedRoles={["DOCTOR"]}><DoctorCompleteProfile /></ProtectedRoute>
             } />
+                      <Route path="/patient/complete-profile" element={
+            <ProtectedRoute allowedRoles={["PATIENT"]}><PatientCompleteProfile /></ProtectedRoute>
+          } />
 
             <Route path="/patient" element={
               <ProtectedRoute allowedRoles={["PATIENT"]}><PatientLayout /></ProtectedRoute>
             }>
               <Route index element={<PatientProfile />} />
               <Route path="qr" element={<PatientQr />} />
+              <Route path="book" element={<PatientBookAppointment />} />
               <Route path="appointments" element={<PatientAppointments />} />
               <Route path="history" element={<PatientHistory />} />
               <Route path="settings" element={<ChangePassword />} />
             </Route>
 
             <Route path="/doctor" element={
-              <ProtectedRoute allowedRoles={["DOCTOR", "ADMIN"]}><DoctorLayout /></ProtectedRoute>
+            <ProtectedRoute allowedRoles={["DOCTOR", "ADMIN"]}><DoctorLayout /></ProtectedRoute>
             }>
-              <Route index element={<DoctorPatients />} />
-              <Route path="appointments" element={<DoctorAppointments />} />
-              <Route path="directory" element={<DoctorDirectory />} />
-              <Route path="settings" element={<ChangePassword />} />
-            </Route>
+            <Route index element={<DoctorPatients />} />
+            <Route path="appointments" element={<DoctorAppointments />} />
+            <Route path="directory" element={<DoctorDirectory />} />
+            <Route path="profile" element={<DoctorProfile />} />
+            <Route path="settings" element={<ChangePassword />} />
+          </Route>
 
             <Route path="/admin" element={
               <ProtectedRoute allowedRoles={["ADMIN"]}><AdminLayout /></ProtectedRoute>
@@ -78,6 +90,8 @@ export default function App() {
               <Route path="departments" element={<AdminDepartments />} />
               <Route path="users" element={<AdminUsers />} />
               <Route path="settings" element={<ChangePassword />} />
+              <Route path="today" element={<AdminTodayAppointments />} />
+              <Route path="profile" element={<AdminProfile />} />
             </Route>
           </Routes>
         </BrowserRouter>

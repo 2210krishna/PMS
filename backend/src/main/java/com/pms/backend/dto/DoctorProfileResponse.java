@@ -13,7 +13,6 @@ public class DoctorProfileResponse {
     private String location;
     private String licenseNumber;
     private String specialization;
-    private String hospitalAffiliation;
     private String departmentName;
     private Long departmentId;
     private boolean profileCompleted;

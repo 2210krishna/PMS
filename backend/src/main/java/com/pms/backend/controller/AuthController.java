@@ -1,10 +1,7 @@
 package com.pms.backend.controller;
 
-import com.pms.backend.dto.AuthResponse;
-import com.pms.backend.dto.ChangePasswordRequest;
-import com.pms.backend.dto.GoogleAuthRequest;
-import com.pms.backend.dto.LoginRequest;
-import com.pms.backend.dto.RegisterRequest;
+import com.pms.backend.dto.*;
+import com.pms.backend.entity.User;
 import com.pms.backend.security.CustomUserDetails;
 import com.pms.backend.service.AuthService;
 import jakarta.validation.Valid;
@@ -33,6 +30,12 @@ public class AuthController {
     @PostMapping("/google")
     public ResponseEntity<AuthResponse> googleAuth(@Valid @RequestBody GoogleAuthRequest request) {
         return ResponseEntity.ok(authService.googleAuth(request));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserSummaryResponse> me(@AuthenticationPrincipal CustomUserDetails principal) {
+        User u = principal.getUser();
+        return ResponseEntity.ok(new UserSummaryResponse(u.getId(), u.getFullName(), u.getEmail(), u.getRole().name(), u.isEnabled()));
     }
 
     @PutMapping("/change-password")

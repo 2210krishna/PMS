@@ -1,26 +1,21 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Html5Qrcode } from "html5-qrcode";
 import axiosClient from "../../api/axiosClient";
 import { useToast } from "../../context/ToastContext";
 
 export default function DoctorPatients() {
+  const [searchParams] = useSearchParams();
   const [healthId, setHealthId] = useState("");
   const [patient, setPatient] = useState(null);
   const [history, setHistory] = useState([]);
-  const [vaccines, setVaccines] = useState([]);
   const [scanning, setScanning] = useState(false);
   const { showToast } = useToast();
 
-  const [diseaseType, setDiseaseType] = useState("");
-  const [diagnosisNotes, setDiagnosisNotes] = useState("");
-  const [prescriptionText, setPrescriptionText] = useState("");
-
-  const [vaccineName, setVaccineName] = useState("");
-  const [doseNumber, setDoseNumber] = useState(1);
-  const [dateGiven, setDateGiven] = useState("");
-
-  const [items, setItems] = useState([{ medicineName: "", dosage: "", quantity: 1, unitPrice: 0 }]);
-  const [prescriptionNotes, setPrescriptionNotes] = useState("");
+  const [diagnosis, setDiagnosis] = useState("");
+  const [cause, setCause] = useState("");
+  const [notes, setNotes] = useState("");
+  const [items, setItems] = useState([{ medicineName: "", dosage: "", durationDays: 5 }]);
 
   const scannerRef = useRef(null);
 
@@ -28,11 +23,7 @@ export default function DoctorPatients() {
     try {
       const res = await axiosClient.get(`/patient/lookup/${id}`);
       setPatient(res.data);
-      if (res.data.verificationStatus === "VERIFIED") {
-        loadHistory(id);
-      } else {
-        setHistory([]); setVaccines([]);
-      }
+      loadHistory(id);
     } catch {
       showToast("No patient found with this Health ID", "error");
       setPatient(null);
@@ -40,11 +31,21 @@ export default function DoctorPatients() {
   };
 
   const loadHistory = async (id) => {
-    const recRes = await axiosClient.get(`/doctor/records/${id}`);
-    setHistory(recRes.data);
-    const vacRes = await axiosClient.get(`/doctor/vaccinations/${id}`);
-    setVaccines(vacRes.data);
+    try {
+      const res = await axiosClient.get(`/prescriptions/patient/${id}`);
+      setHistory(res.data);
+    } catch {
+      setHistory([]);
+    }
   };
+
+  useEffect(() => {
+    const paramHealthId = searchParams.get("healthId");
+    if (paramHealthId) {
+      setHealthId(paramHealthId);
+      lookupPatient(paramHealthId);
+    }
+  }, []);
 
   const handleManualLookup = (e) => {
     e.preventDefault();
@@ -79,41 +80,13 @@ export default function DoctorPatients() {
     setScanning(false);
   };
 
-  const submitRecord = async (e) => {
-    e.preventDefault();
-    try {
-      await axiosClient.post("/doctor/records", {
-        healthId: patient.healthId, diseaseType, diagnosisNotes, prescriptionText,
-      });
-      showToast("Diagnosis saved", "success");
-      setDiseaseType(""); setDiagnosisNotes(""); setPrescriptionText("");
-      loadHistory(patient.healthId);
-    } catch (err) {
-      showToast(err.response?.data?.message || "Failed to add record", "error");
-    }
-  };
-
-  const submitVaccination = async (e) => {
-    e.preventDefault();
-    try {
-      await axiosClient.post("/doctor/vaccinations", {
-        healthId: patient.healthId, vaccineName, doseNumber: Number(doseNumber), dateGiven,
-      });
-      showToast("Vaccination logged", "success");
-      setVaccineName(""); setDoseNumber(1); setDateGiven("");
-      loadHistory(patient.healthId);
-    } catch (err) {
-      showToast(err.response?.data?.message || "Failed to add vaccination", "error");
-    }
-  };
-
   const updateItem = (idx, field, value) => {
     const updated = [...items];
     updated[idx][field] = value;
     setItems(updated);
   };
 
-  const addItemRow = () => setItems([...items, { medicineName: "", dosage: "", quantity: 1, unitPrice: 0 }]);
+  const addItemRow = () => setItems([...items, { medicineName: "", dosage: "", durationDays: 5 }]);
   const removeItemRow = (idx) => setItems(items.filter((_, i) => i !== idx));
 
   const submitPrescription = async (e) => {
@@ -121,12 +94,15 @@ export default function DoctorPatients() {
     try {
       await axiosClient.post("/prescriptions", {
         healthId: patient.healthId,
-        notes: prescriptionNotes,
-        items: items.map((it) => ({ ...it, quantity: Number(it.quantity), unitPrice: Number(it.unitPrice) })),
+        diagnosis,
+        cause,
+        notes,
+        items: items.map((it) => ({ ...it, durationDays: Number(it.durationDays) })),
       });
       showToast("Prescription created", "success");
-      setPrescriptionNotes("");
-      setItems([{ medicineName: "", dosage: "", quantity: 1, unitPrice: 0 }]);
+      setDiagnosis(""); setCause(""); setNotes("");
+      setItems([{ medicineName: "", dosage: "", durationDays: 5 }]);
+      loadHistory(patient.healthId);
     } catch (err) {
       showToast(err.response?.data?.message || "Failed to create prescription", "error");
     }
@@ -169,7 +145,7 @@ export default function DoctorPatients() {
               <div>
                 <h2 className="font-semibold text-gray-800 mb-1">{patient.fullName}</h2>
                 <p className="text-sm text-gray-500">
-                  Health ID: {patient.healthId} · {patient.gender}, DOB {patient.dateOfBirth}
+                  Health ID: {patient.healthId} · DOB {patient.dateOfBirth} · {patient.phone} · {patient.location} · Blood: {patient.bloodGroup}
                 </p>
               </div>
               <span className={`text-xs px-2 py-1 rounded-full font-medium ${
@@ -178,8 +154,6 @@ export default function DoctorPatients() {
                 {patient.verificationStatus}
               </span>
             </div>
-            {patient.knownAllergies && <p className="text-sm text-red-600 mt-2">⚠ Allergies: {patient.knownAllergies}</p>}
-            {patient.chronicConditions && <p className="text-sm text-orange-600">Chronic: {patient.chronicConditions}</p>}
           </div>
 
           {!isVerified ? (
@@ -188,63 +162,61 @@ export default function DoctorPatients() {
             </div>
           ) : (
             <>
-              <div className="grid md:grid-cols-2 gap-6">
-                <form onSubmit={submitRecord} className="bg-white rounded-xl shadow-sm border p-6">
-                  <h3 className="font-semibold text-gray-800 mb-3">Add Diagnosis</h3>
-                  <input required value={diseaseType} onChange={(e) => setDiseaseType(e.target.value)}
-                    placeholder="Disease type" className="w-full border rounded-md px-3 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-teal-500" />
-                  <textarea value={diagnosisNotes} onChange={(e) => setDiagnosisNotes(e.target.value)}
-                    placeholder="Diagnosis notes" className="w-full border rounded-md px-3 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-teal-500" rows={2} />
-                  <textarea value={prescriptionText} onChange={(e) => setPrescriptionText(e.target.value)}
-                    placeholder="Notes" className="w-full border rounded-md px-3 py-2 mb-3 focus:outline-none focus:ring-2 focus:ring-teal-500" rows={2} />
-                  <button className="bg-teal-700 hover:bg-teal-800 text-white px-4 py-2 rounded-md w-full">Save Diagnosis</button>
-                </form>
+              <form onSubmit={submitPrescription} className="bg-white rounded-xl shadow-sm border p-6 mb-6">
+                <h3 className="font-semibold text-gray-800 mb-3">Diagnosis &amp; Prescription</h3>
 
-                <form onSubmit={submitVaccination} className="bg-white rounded-xl shadow-sm border p-6">
-                  <h3 className="font-semibold text-gray-800 mb-3">Log Vaccination</h3>
-                  <input required value={vaccineName} onChange={(e) => setVaccineName(e.target.value)}
-                    placeholder="Vaccine name" className="w-full border rounded-md px-3 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-teal-500" />
-                  <input required type="number" min={1} value={doseNumber} onChange={(e) => setDoseNumber(e.target.value)}
-                    className="w-full border rounded-md px-3 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-teal-500" />
-                  <input required type="date" value={dateGiven} onChange={(e) => setDateGiven(e.target.value)}
-                    className="w-full border rounded-md px-3 py-2 mb-3 focus:outline-none focus:ring-2 focus:ring-teal-500" />
-                  <button className="bg-teal-700 hover:bg-teal-800 text-white px-4 py-2 rounded-md w-full">Save Vaccination</button>
-                </form>
-              </div>
+                <div className="grid md:grid-cols-2 gap-3 mb-3">
+                  <div>
+                    <label className="block text-sm font-medium mb-1 text-gray-700">Diagnosis</label>
+                    <input required value={diagnosis} onChange={(e) => setDiagnosis(e.target.value)}
+                      placeholder="e.g. Viral fever" className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1 text-gray-700">Cause</label>
+                    <input value={cause} onChange={(e) => setCause(e.target.value)}
+                      placeholder="e.g. Seasonal infection" className="w-full border rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500" />
+                  </div>
+                </div>
 
-              <form onSubmit={submitPrescription} className="bg-white rounded-xl shadow-sm border p-6 mt-6">
-                <h3 className="font-semibold text-gray-800 mb-3">Create Prescription / Bill</h3>
+                <label className="block text-sm font-medium mb-1 text-gray-700">Notes (optional)</label>
+                <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2}
+                  className="w-full border rounded-md px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-teal-500" />
+
+                <label className="block text-sm font-medium mb-2 text-gray-700">Medicines</label>
                 {items.map((it, idx) => (
                   <div key={idx} className="grid grid-cols-12 gap-2 mb-2 items-center">
-                    <input required placeholder="Medicine" value={it.medicineName}
+                    <input required placeholder="Medicine name" value={it.medicineName}
                       onChange={(e) => updateItem(idx, "medicineName", e.target.value)}
-                      className="col-span-4 border rounded-md px-2 py-1.5 text-sm" />
-                    <input placeholder="Dosage" value={it.dosage}
+                      className="col-span-5 border rounded-md px-2 py-1.5 text-sm" />
+                    <input placeholder="Dosage (e.g. 1-0-1)" value={it.dosage}
                       onChange={(e) => updateItem(idx, "dosage", e.target.value)}
-                      className="col-span-3 border rounded-md px-2 py-1.5 text-sm" />
-                    <input required type="number" min={1} placeholder="Qty" value={it.quantity}
-                      onChange={(e) => updateItem(idx, "quantity", e.target.value)}
-                      className="col-span-2 border rounded-md px-2 py-1.5 text-sm" />
-                    <input required type="number" min={0} step="0.01" placeholder="Price" value={it.unitPrice}
-                      onChange={(e) => updateItem(idx, "unitPrice", e.target.value)}
+                      className="col-span-4 border rounded-md px-2 py-1.5 text-sm" />
+                    <input required type="number" min={1} placeholder="Days" value={it.durationDays}
+                      onChange={(e) => updateItem(idx, "durationDays", e.target.value)}
                       className="col-span-2 border rounded-md px-2 py-1.5 text-sm" />
                     <button type="button" onClick={() => removeItemRow(idx)} className="col-span-1 text-red-600 text-xs">✕</button>
                   </div>
                 ))}
-                <button type="button" onClick={addItemRow} className="text-sm text-teal-700 underline mb-3">+ Add medicine</button>
-                <textarea value={prescriptionNotes} onChange={(e) => setPrescriptionNotes(e.target.value)}
-                  placeholder="Prescription notes" rows={2}
-                  className="w-full border rounded-md px-3 py-2 mb-3 focus:outline-none focus:ring-2 focus:ring-teal-500" />
-                <button className="bg-teal-700 hover:bg-teal-800 text-white px-4 py-2 rounded-md w-full">Generate Prescription</button>
+                <button type="button" onClick={addItemRow} className="text-sm text-teal-700 underline mb-4">+ Add medicine</button>
+
+                <button className="bg-teal-700 hover:bg-teal-800 text-white px-4 py-2 rounded-md w-full">
+                  Save Prescription
+                </button>
               </form>
 
-              <div className="bg-white rounded-xl shadow-sm border p-6 mt-6">
-                <h3 className="font-semibold text-gray-800 mb-3">Medical History</h3>
-                {history.length === 0 && <p className="text-sm text-gray-400">No records yet.</p>}
-                {history.map((r) => (
-                  <div key={r.id} className="border-b last:border-0 py-2 text-sm">
-                    <p className="font-medium text-gray-800">{r.diseaseType} — {r.createdAt}</p>
-                    <p className="text-gray-600">{r.diagnosisNotes}</p>
+              <div className="bg-white rounded-xl shadow-sm border p-6">
+                <h3 className="font-semibold text-gray-800 mb-3">Previous Prescriptions</h3>
+                {history.length === 0 && <p className="text-sm text-gray-400">No previous prescriptions.</p>}
+                {history.map((p) => (
+                  <div key={p.id} className="border-b last:border-0 py-3 text-sm">
+                    <div className="flex justify-between">
+                      <p className="font-medium text-gray-800">{p.diagnosis}</p>
+                      <p className="text-gray-400 text-xs">{p.createdAt}</p>
+                    </div>
+                    {p.cause && <p className="text-gray-600">Cause: {p.cause}</p>}
+                    <p className="text-xs text-gray-400 mt-1">
+                      by Dr. {p.doctorName} — {p.items.map((i) => i.medicineName).join(", ")}
+                    </p>
                   </div>
                 ))}
               </div>

@@ -100,13 +100,20 @@ public class AppointmentService {
     public AppointmentResponse updateStatus(Long appointmentId, String status) {
         Appointment appt = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new IllegalArgumentException("Appointment not found"));
-        appt.setStatus(status.toUpperCase());
+    
+        String newStatus = status.toUpperCase();
+    
+        if (newStatus.equals("COMPLETED") && appt.getAppointmentDate().isAfter(LocalDate.now())) {
+            throw new IllegalArgumentException("Cannot mark a future appointment as completed. Please wait until the appointment date.");
+        }
+    
+        appt.setStatus(newStatus);
         Appointment saved = appointmentRepository.save(appt);
-
+    
         notificationService.notify(appt.getPatient().getUser(),
                 "Your appointment with Dr. " + appt.getDoctor().getFullName() + " on " + appt.getAppointmentDate() +
-                " is now " + status.toUpperCase());
-
+                " is now " + newStatus);
+    
         return toResponse(saved);
     }
 
@@ -117,5 +124,9 @@ public class AppointmentService {
                 a.getAppointmentDate().toString(), a.getTimeSlot(), a.getReason(), a.getStatus(),
                 a.getCreatedAt().format(FMT)
         );
+    }
+    public List<AppointmentResponse> getTodayAppointments() {
+        return appointmentRepository.findByAppointmentDateOrderByTimeSlot(LocalDate.now())
+                .stream().map(this::toResponse).toList();
     }
 }

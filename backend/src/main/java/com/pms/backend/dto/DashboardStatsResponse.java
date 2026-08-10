@@ -11,4 +11,7 @@ public class DashboardStatsResponse {
     private long appointmentsToday;
     private long appointmentsCompletedToday;
     private long patientsBookedToday;
+    private long confirmedAppointments;
+    private long completedAppointments;
+    private long cancelledAppointments;
 }

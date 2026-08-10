@@ -11,10 +11,14 @@ export default function ProtectedRoute({ children, allowedRoles }) {
     return <Navigate to="/" replace />;
   }
 
-  const onCompleteProfilePage = location.pathname === "/doctor/complete-profile";
-
-  if (user.role === "DOCTOR" && !user.doctorProfileCompleted && !onCompleteProfilePage) {
+  const onDoctorCompletePage = location.pathname === "/doctor/complete-profile";
+  if (user.role === "DOCTOR" && !user.doctorProfileCompleted && !onDoctorCompletePage) {
     return <Navigate to="/doctor/complete-profile" replace />;
+  }
+
+  const onPatientCompletePage = location.pathname === "/patient/complete-profile";
+  if (user.role === "PATIENT" && !user.healthId && !onPatientCompletePage) {
+    return <Navigate to="/patient/complete-profile" replace />;
   }
 
   return children;

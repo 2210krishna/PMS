@@ -16,7 +16,6 @@ public class CompleteDoctorProfileRequest {
     private String licenseNumber;
     @NotBlank
     private String specialization;
-    private String hospitalAffiliation;
     @NotNull
     private Long departmentId;
 }

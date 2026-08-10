@@ -28,7 +28,6 @@ public class DoctorProfile {
 
     private String licenseNumber;
     private String specialization;
-    private String hospitalAffiliation;
     private String phone;
     private String location;
 

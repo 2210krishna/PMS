@@ -1,15 +1,14 @@
 package com.pms.backend.controller;
 
+import com.pms.backend.dto.AppointmentRequest;
+import com.pms.backend.dto.AppointmentResponse;
+import com.pms.backend.security.CustomUserDetails;
+import com.pms.backend.service.AppointmentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import com.pms.backend.dto.AppointmentRequest;
-import com.pms.backend.dto.AppointmentResponse;
-import com.pms.backend.security.CustomUserDetails;
-import com.pms.backend.service.AppointmentService;
 
 import java.util.List;
 
@@ -35,6 +34,11 @@ public class AppointmentController {
     @GetMapping("/me/as-doctor")
     public ResponseEntity<List<AppointmentResponse>> myAsDoctor(@AuthenticationPrincipal CustomUserDetails principal) {
         return ResponseEntity.ok(appointmentService.getMyAppointmentsAsDoctor(principal.getUser().getId()));
+    }
+
+    @GetMapping("/today")
+    public ResponseEntity<List<AppointmentResponse>> today() {
+        return ResponseEntity.ok(appointmentService.getTodayAppointments());
     }
 
     @GetMapping

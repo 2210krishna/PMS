@@ -11,7 +11,10 @@ import java.util.List;
 public class PrescriptionRequest {
     @NotBlank
     private String healthId;
-    private Long appointmentId; // optional
+    private Long appointmentId;
+    @NotBlank
+    private String diagnosis;
+    private String cause;
     private String notes;
     @NotEmpty
     private List<PrescriptionItemDto> items;

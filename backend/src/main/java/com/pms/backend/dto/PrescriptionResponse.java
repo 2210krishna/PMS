@@ -11,8 +11,9 @@ public class PrescriptionResponse {
     private String patientHealthId;
     private String patientName;
     private String doctorName;
+    private String diagnosis;
+    private String cause;
     private String notes;
     private List<PrescriptionItemDto> items;
-    private double totalAmount;
     private String createdAt;
 }

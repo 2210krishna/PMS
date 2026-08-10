@@ -39,6 +39,7 @@ public class DoctorProfileService {
         user.setRole(Role.DOCTOR);
         user.setPreferredLanguage("en");
         user.setEnabled(true);
+        user.setAuthProvider("LOCAL");
         User savedUser = userRepository.save(user);
 
         DoctorProfile profile = new DoctorProfile();
@@ -47,6 +48,15 @@ public class DoctorProfileService {
         doctorProfileRepository.save(profile);
 
         return new CreateDoctorResponse(savedUser.getId(), savedUser.getEmail(), tempPassword);
+    }
+
+    public CreateDoctorResponse resetPassword(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Doctor not found"));
+        String tempPassword = "Dr" + UUID.randomUUID().toString().substring(0, 8);
+        user.setPassword(passwordEncoder.encode(tempPassword));
+        userRepository.save(user);
+        return new CreateDoctorResponse(user.getId(), user.getEmail(), tempPassword);
     }
 
     public DoctorProfileResponse getMyProfile(Long userId) {
@@ -70,7 +80,6 @@ public class DoctorProfileService {
         profile.setLocation(req.getLocation());
         profile.setLicenseNumber(req.getLicenseNumber());
         profile.setSpecialization(req.getSpecialization());
-        profile.setHospitalAffiliation(req.getHospitalAffiliation());
         profile.setDepartment(department);
         profile.setProfileCompleted(true);
 
@@ -96,20 +105,9 @@ public class DoctorProfileService {
                 user.getId(), user.getFullName(), user.getEmail(),
                 profile.getPhone(), profile.getLocation(),
                 profile.getLicenseNumber(), profile.getSpecialization(),
-                profile.getHospitalAffiliation(),
                 profile.getDepartment() != null ? profile.getDepartment().getName() : null,
                 profile.getDepartment() != null ? profile.getDepartment().getId() : null,
                 profile.isProfileCompleted()
         );
-    }
-    public CreateDoctorResponse resetPassword(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Doctor not found"));
-    
-        String tempPassword = "Dr" + UUID.randomUUID().toString().substring(0, 8);
-        user.setPassword(passwordEncoder.encode(tempPassword));
-        userRepository.save(user);
-    
-        return new CreateDoctorResponse(user.getId(), user.getEmail(), tempPassword);
     }
 }

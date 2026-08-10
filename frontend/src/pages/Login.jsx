@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
+import GoogleSignInButton from "../components/GoogleSignInButton";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -73,6 +74,14 @@ export default function Login() {
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>
+
+          <div className="flex items-center gap-3 my-4">
+            <div className="flex-1 h-px bg-gray-200" />
+            <span className="text-xs text-gray-400">OR</span>
+            <div className="flex-1 h-px bg-gray-200" />
+          </div>
+
+          <GoogleSignInButton />
 
           <p className="text-sm text-center mt-5 text-gray-500">
             No account? <Link to="/register" className="text-teal-700 font-medium hover:underline">Register as Patient</Link>

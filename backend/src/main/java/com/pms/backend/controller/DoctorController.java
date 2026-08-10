@@ -1,16 +1,13 @@
 package com.pms.backend.controller;
 
+import com.pms.backend.dto.*;
+import com.pms.backend.security.CustomUserDetails;
+import com.pms.backend.service.DoctorProfileService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import com.pms.backend.dto.*;
-import com.pms.backend.security.CustomUserDetails;
-import com.pms.backend.service.DoctorProfileService;
-import com.pms.backend.service.MedicalRecordService;
-import com.pms.backend.service.VaccinationService;
 
 import java.util.List;
 
@@ -20,32 +17,6 @@ import java.util.List;
 public class DoctorController {
 
     private final DoctorProfileService doctorProfileService;
-    private final MedicalRecordService medicalRecordService;
-    private final VaccinationService vaccinationService;
-
-    @PostMapping("/records")
-    public ResponseEntity<MedicalRecordResponse> addRecord(
-            @AuthenticationPrincipal CustomUserDetails principal,
-            @Valid @RequestBody MedicalRecordRequest request) {
-        return ResponseEntity.ok(medicalRecordService.addRecord(request, principal.getUser().getId()));
-    }
-
-    @GetMapping("/records/{healthId}")
-    public ResponseEntity<List<MedicalRecordResponse>> getHistory(@PathVariable String healthId) {
-        return ResponseEntity.ok(medicalRecordService.getHistoryByHealthId(healthId));
-    }
-
-    @PostMapping("/vaccinations")
-    public ResponseEntity<VaccinationResponse> addVaccination(
-            @AuthenticationPrincipal CustomUserDetails principal,
-            @Valid @RequestBody VaccinationRequest request) {
-        return ResponseEntity.ok(vaccinationService.addVaccination(request, principal.getUser().getId()));
-    }
-
-    @GetMapping("/vaccinations/{healthId}")
-    public ResponseEntity<List<VaccinationResponse>> getVaccinationHistory(@PathVariable String healthId) {
-        return ResponseEntity.ok(vaccinationService.getHistoryByHealthId(healthId));
-    }
 
     @GetMapping("/directory")
     public ResponseEntity<List<DoctorProfileResponse>> directory() {

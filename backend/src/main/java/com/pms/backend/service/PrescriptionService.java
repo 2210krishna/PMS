@@ -1,14 +1,13 @@
 package com.pms.backend.service;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
 import com.pms.backend.dto.*;
 import com.pms.backend.entity.*;
 import com.pms.backend.repository.AppointmentRepository;
 import com.pms.backend.repository.PatientRepository;
 import com.pms.backend.repository.PrescriptionRepository;
 import com.pms.backend.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -35,6 +34,8 @@ public class PrescriptionService {
         Prescription prescription = new Prescription();
         prescription.setPatient(patient);
         prescription.setDoctor(doctor);
+        prescription.setDiagnosis(req.getDiagnosis());
+        prescription.setCause(req.getCause());
         prescription.setNotes(req.getNotes());
 
         if (req.getAppointmentId() != null) {
@@ -50,16 +51,17 @@ public class PrescriptionService {
             item.setPrescription(prescription);
             item.setMedicineName(dto.getMedicineName());
             item.setDosage(dto.getDosage());
-            item.setQuantity(dto.getQuantity());
-            item.setUnitPrice(dto.getUnitPrice());
+            item.setDurationDays(dto.getDurationDays());
             return item;
         }).toList();
 
         prescription.setItems(items);
 
         Prescription saved = prescriptionRepository.save(prescription);
+
         notificationService.notify(patient.getUser(),
-        "Dr. " + doctor.getFullName() + " issued a new prescription for you.");
+                "Dr. " + doctor.getFullName() + " issued a new prescription for you: " + req.getDiagnosis());
+
         return toResponse(saved);
     }
 
@@ -75,17 +77,14 @@ public class PrescriptionService {
             PrescriptionItemDto dto = new PrescriptionItemDto();
             dto.setMedicineName(i.getMedicineName());
             dto.setDosage(i.getDosage());
-            dto.setQuantity(i.getQuantity());
-            dto.setUnitPrice(i.getUnitPrice());
+            dto.setDurationDays(i.getDurationDays());
             return dto;
         }).toList();
 
-        double total = itemDtos.stream().mapToDouble(i -> i.getQuantity() * i.getUnitPrice()).sum();
-
         return new PrescriptionResponse(
                 p.getId(), p.getPatient().getHealthId(), p.getPatient().getUser().getFullName(),
-                p.getDoctor().getFullName(), p.getNotes(), itemDtos, total,
-                p.getCreatedAt().format(FMT)
+                p.getDoctor().getFullName(), p.getDiagnosis(), p.getCause(), p.getNotes(),
+                itemDtos, p.getCreatedAt().format(FMT)
         );
     }
 }

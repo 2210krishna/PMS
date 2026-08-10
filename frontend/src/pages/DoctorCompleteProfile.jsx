@@ -9,7 +9,6 @@ export default function DoctorCompleteProfile() {
   const [location, setLocation] = useState("");
   const [licenseNumber, setLicenseNumber] = useState("");
   const [specialization, setSpecialization] = useState("");
-  const [hospitalAffiliation, setHospitalAffiliation] = useState("");
   const [departmentId, setDepartmentId] = useState("");
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -26,7 +25,7 @@ export default function DoctorCompleteProfile() {
     setLoading(true);
     try {
       await axiosClient.put("/doctor/profile/me", {
-        phone, location, licenseNumber, specialization, hospitalAffiliation,
+        phone, location, licenseNumber, specialization,
         departmentId: Number(departmentId),
       });
       refreshUser({ doctorProfileCompleted: true });
@@ -56,7 +55,7 @@ export default function DoctorCompleteProfile() {
           {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
         </select>
 
-        <label className="block text-sm font-medium mb-1 text-gray-700">Clinic / Hospital Location</label>
+        <label className="block text-sm font-medium mb-1 text-gray-700">Location</label>
         <input required value={location} onChange={(e) => setLocation(e.target.value)}
           className="w-full border rounded-md px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-teal-500" />
 
@@ -66,10 +65,6 @@ export default function DoctorCompleteProfile() {
 
         <label className="block text-sm font-medium mb-1 text-gray-700">Specialization</label>
         <input required value={specialization} onChange={(e) => setSpecialization(e.target.value)}
-          className="w-full border rounded-md px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-teal-500" />
-
-        <label className="block text-sm font-medium mb-1 text-gray-700">Hospital / Clinic Affiliation</label>
-        <input value={hospitalAffiliation} onChange={(e) => setHospitalAffiliation(e.target.value)}
           className="w-full border rounded-md px-3 py-2 mb-6 focus:outline-none focus:ring-2 focus:ring-teal-500" />
 
         <button type="submit" disabled={loading}

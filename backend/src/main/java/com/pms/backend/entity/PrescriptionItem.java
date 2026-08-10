@@ -28,8 +28,5 @@ public class PrescriptionItem {
     private String dosage;
 
     @Column(nullable = false)
-    private Integer quantity;
-
-    @Column(nullable = false)
-    private Double unitPrice;
+    private Integer durationDays;
 }

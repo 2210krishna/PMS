@@ -13,13 +13,7 @@ export default function AdminPatients() {
     setLoadError("");
     axiosClient.get("/admin/patients/pending")
       .then((r) => setPending(r.data))
-      .catch((err) => {
-        setLoadError(
-          err.response
-            ? `Server responded ${err.response.status}: ${err.response.data?.message || "Unknown error"}`
-            : `Could not reach backend: ${err.message}`
-        );
-      })
+      .catch((err) => setLoadError(err.response ? `${err.response.status}: ${err.response.data?.message}` : err.message))
       .finally(() => setLoading(false));
   };
 
@@ -42,7 +36,7 @@ export default function AdminPatients() {
 
       {loadError && (
         <div className="bg-red-50 border border-red-300 text-red-700 text-sm p-3 rounded-md mb-6">
-          <strong>Failed to load pending patients:</strong> {loadError}
+          <strong>Failed to load:</strong> {loadError}
         </div>
       )}
 
@@ -52,20 +46,20 @@ export default function AdminPatients() {
             <tr>
               <th className="text-left px-4 py-3">Name</th>
               <th className="text-left px-4 py-3">Health ID</th>
-              <th className="text-left px-4 py-3">District</th>
+              <th className="text-left px-4 py-3">Location</th>
+              <th className="text-left px-4 py-3">Blood Group</th>
               <th className="text-left px-4 py-3">Phone</th>
               <th className="text-left px-4 py-3">Action</th>
             </tr>
           </thead>
           <tbody>
-            {loading && (
-              <tr><td colSpan={5} className="px-4 py-6 text-center text-gray-400">Loading...</td></tr>
-            )}
+            {loading && <tr><td colSpan={6} className="px-4 py-6 text-center text-gray-400">Loading...</td></tr>}
             {!loading && pending.map((w) => (
               <tr key={w.patientId} className="border-t">
                 <td className="px-4 py-3 font-medium text-gray-800">{w.fullName}</td>
                 <td className="px-4 py-3 font-mono text-xs text-gray-600">{w.healthId}</td>
-                <td className="px-4 py-3 text-gray-600">{w.currentDistrict}</td>
+                <td className="px-4 py-3 text-gray-600">{w.location}</td>
+                <td className="px-4 py-3 text-gray-600">{w.bloodGroup}</td>
                 <td className="px-4 py-3 text-gray-600">{w.phone}</td>
                 <td className="px-4 py-3">
                   <div className="flex gap-2">
@@ -76,7 +70,7 @@ export default function AdminPatients() {
               </tr>
             ))}
             {!loading && !loadError && pending.length === 0 && (
-              <tr><td colSpan={5} className="px-4 py-6 text-center text-gray-400">No pending verifications.</td></tr>
+              <tr><td colSpan={6} className="px-4 py-6 text-center text-gray-400">No pending verifications.</td></tr>
             )}
           </tbody>
         </table>

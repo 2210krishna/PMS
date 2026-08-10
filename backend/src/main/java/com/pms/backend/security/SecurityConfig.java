@@ -60,6 +60,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/doctor/**").hasAnyRole("DOCTOR", "ADMIN")
                 .requestMatchers("/api/patient/**").hasAnyRole("PATIENT", "DOCTOR", "ADMIN")
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/appointments/today").hasRole("ADMIN")
                 .requestMatchers("/api/appointments/**").authenticated()
                 .requestMatchers("/api/prescriptions/**").authenticated()
                 .requestMatchers("/api/notifications/**").authenticated()

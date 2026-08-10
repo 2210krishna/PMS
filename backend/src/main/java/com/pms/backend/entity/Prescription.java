@@ -32,6 +32,12 @@ public class Prescription {
     @JoinColumn(name = "doctor_id", nullable = false)
     private User doctor;
 
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String diagnosis;
+
+    @Column(columnDefinition = "TEXT")
+    private String cause;
+
     @Column(columnDefinition = "TEXT")
     private String notes;
 
