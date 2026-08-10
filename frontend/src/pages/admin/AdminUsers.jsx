@@ -6,6 +6,8 @@ export default function AdminUsers() {
   const [users, setUsers] = useState([]);
   const [loadError, setLoadError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("ALL");
   const { showToast } = useToast();
 
   const load = () => {
@@ -29,6 +31,13 @@ export default function AdminUsers() {
     }
   };
 
+  const filtered = users.filter((u) => {
+    const matchesRole = roleFilter === "ALL" || u.role === roleFilter;
+    const q = search.toLowerCase();
+    const matchesSearch = u.fullName.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
+    return matchesRole && matchesSearch;
+  });
+
   return (
     <div>
       <h1 className="text-2xl font-bold text-gray-800 mb-1">All Users</h1>
@@ -39,6 +48,25 @@ export default function AdminUsers() {
           <strong>Failed to load users:</strong> {loadError}
         </div>
       )}
+
+      <div className="flex gap-2 mb-4 flex-wrap">
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by name or email..."
+          className="flex-1 min-w-[220px] border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+        />
+        <select
+          value={roleFilter}
+          onChange={(e) => setRoleFilter(e.target.value)}
+          className="border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+        >
+          <option value="ALL">All roles</option>
+          <option value="ADMIN">Admin</option>
+          <option value="DOCTOR">Doctor</option>
+          <option value="PATIENT">Patient</option>
+        </select>
+      </div>
 
       <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
         <table className="w-full text-sm">
@@ -53,7 +81,7 @@ export default function AdminUsers() {
           </thead>
           <tbody>
             {loading && <tr><td colSpan={5} className="px-4 py-6 text-center text-gray-400">Loading...</td></tr>}
-            {!loading && users.map((u) => (
+            {!loading && filtered.map((u) => (
               <tr key={u.id} className="border-t">
                 <td className="px-4 py-3 font-medium text-gray-800">{u.fullName}</td>
                 <td className="px-4 py-3 text-gray-600">{u.email}</td>
@@ -74,6 +102,9 @@ export default function AdminUsers() {
                 </td>
               </tr>
             ))}
+            {!loading && !loadError && filtered.length === 0 && (
+              <tr><td colSpan={5} className="px-4 py-6 text-center text-gray-400">No users match your search.</td></tr>
+            )}
           </tbody>
         </table>
       </div>

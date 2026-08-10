@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -48,13 +49,10 @@ public class AppointmentService {
         }
 
         if (date.isEqual(LocalDate.now())) {
-            String startPart = req.getTimeSlot().split("-")[0].trim();
-            try {
-                LocalTime slotStart = LocalTime.parse(startPart, TIME_FMT);
-                if (!slotStart.isAfter(LocalTime.now())) {
-                    throw new IllegalArgumentException("Selected time slot has already passed today. Please choose a later slot.");
-                }
-            } catch (java.time.format.DateTimeParseException ignored) {}
+            LocalTime slotStart = parseSlotStart(req.getTimeSlot());
+            if (!slotStart.isAfter(LocalTime.now())) {
+                throw new IllegalArgumentException("Selected time slot has already passed today. Please choose a later slot.");
+            }
         }
 
         boolean slotTaken = appointmentRepository.existsByDoctorIdAndAppointmentDateAndTimeSlotAndStatus(
@@ -83,38 +81,65 @@ public class AppointmentService {
     public List<AppointmentResponse> getMyAppointmentsAsPatient(Long patientUserId) {
         Patient patient = patientRepository.findByUserId(patientUserId)
                 .orElseThrow(() -> new IllegalArgumentException("Patient profile not found"));
-        return appointmentRepository.findByPatientIdOrderByAppointmentDateDesc(patient.getId())
-                .stream().map(this::toResponse).toList();
+        return sortedNewestFirst(appointmentRepository.findByPatientIdOrderByAppointmentDateDesc(patient.getId()));
     }
 
     public List<AppointmentResponse> getMyAppointmentsAsDoctor(Long doctorUserId) {
-        return appointmentRepository.findByDoctorIdOrderByAppointmentDateDesc(doctorUserId)
-                .stream().map(this::toResponse).toList();
+        return sortedNewestFirst(appointmentRepository.findByDoctorIdOrderByAppointmentDateDesc(doctorUserId));
+    }
+
+    public List<AppointmentResponse> getTodayAppointments() {
+        return sortedAscending(appointmentRepository.findByAppointmentDate(LocalDate.now()));
     }
 
     public List<AppointmentResponse> getAll() {
-        return appointmentRepository.findAllByOrderByAppointmentDateDesc()
-                .stream().map(this::toResponse).toList();
+        return sortedNewestFirst(appointmentRepository.findAllByOrderByAppointmentDateDesc());
     }
 
     public AppointmentResponse updateStatus(Long appointmentId, String status) {
         Appointment appt = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new IllegalArgumentException("Appointment not found"));
-    
+
         String newStatus = status.toUpperCase();
-    
+
         if (newStatus.equals("COMPLETED") && appt.getAppointmentDate().isAfter(LocalDate.now())) {
             throw new IllegalArgumentException("Cannot mark a future appointment as completed. Please wait until the appointment date.");
         }
-    
+
         appt.setStatus(newStatus);
         Appointment saved = appointmentRepository.save(appt);
-    
+
         notificationService.notify(appt.getPatient().getUser(),
                 "Your appointment with Dr. " + appt.getDoctor().getFullName() + " on " + appt.getAppointmentDate() +
                 " is now " + newStatus);
-    
+
         return toResponse(saved);
+    }
+
+    private LocalTime parseSlotStart(String timeSlot) {
+        try {
+            String startPart = timeSlot.split("-")[0].trim();
+            return LocalTime.parse(startPart, TIME_FMT);
+        } catch (Exception e) {
+            return LocalTime.MIDNIGHT;
+        }
+    }
+
+    private List<AppointmentResponse> sortedNewestFirst(List<Appointment> list) {
+        return list.stream()
+                .sorted(Comparator.comparing(Appointment::getAppointmentDate)
+                        .thenComparing((Appointment a) -> parseSlotStart(a.getTimeSlot()))
+                        .reversed())
+                .map(this::toResponse)
+                .toList();
+    }
+
+    private List<AppointmentResponse> sortedAscending(List<Appointment> list) {
+        return list.stream()
+                .sorted(Comparator.comparing(Appointment::getAppointmentDate)
+                        .thenComparing((Appointment a) -> parseSlotStart(a.getTimeSlot())))
+                .map(this::toResponse)
+                .toList();
     }
 
     private AppointmentResponse toResponse(Appointment a) {
@@ -124,9 +149,5 @@ public class AppointmentService {
                 a.getAppointmentDate().toString(), a.getTimeSlot(), a.getReason(), a.getStatus(),
                 a.getCreatedAt().format(FMT)
         );
-    }
-    public List<AppointmentResponse> getTodayAppointments() {
-        return appointmentRepository.findByAppointmentDateOrderByTimeSlot(LocalDate.now())
-                .stream().map(this::toResponse).toList();
     }
 }
