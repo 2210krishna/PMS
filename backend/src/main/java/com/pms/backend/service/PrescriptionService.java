@@ -3,6 +3,7 @@ package com.pms.backend.service;
 import com.pms.backend.dto.*;
 import com.pms.backend.entity.*;
 import com.pms.backend.repository.AppointmentRepository;
+import com.pms.backend.repository.MedicalFileRepository;
 import com.pms.backend.repository.PatientRepository;
 import com.pms.backend.repository.PrescriptionRepository;
 import com.pms.backend.repository.UserRepository;
@@ -21,6 +22,8 @@ public class PrescriptionService {
     private final UserRepository userRepository;
     private final AppointmentRepository appointmentRepository;
     private final NotificationService notificationService;
+    private final MedicalFileRepository medicalFileRepository;
+    private final MedicalFileService medicalFileService;
 
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
@@ -81,10 +84,13 @@ public class PrescriptionService {
             return dto;
         }).toList();
 
+        List<MedicalFileResponse> files = medicalFileRepository.findByPrescriptionIdOrderByUploadedAtDesc(p.getId())
+                .stream().map(medicalFileService::toResponse).toList();
+
         return new PrescriptionResponse(
                 p.getId(), p.getPatient().getHealthId(), p.getPatient().getUser().getFullName(),
                 p.getDoctor().getFullName(), p.getDiagnosis(), p.getCause(), p.getNotes(),
-                itemDtos, p.getCreatedAt().format(FMT)
+                itemDtos, p.getCreatedAt().format(FMT), files
         );
     }
 }

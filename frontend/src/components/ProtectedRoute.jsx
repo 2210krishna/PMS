@@ -16,6 +16,11 @@ export default function ProtectedRoute({ children, allowedRoles }) {
     return <Navigate to="/doctor/complete-profile" replace />;
   }
 
+  const onLabCompletePage = location.pathname === "/lab/complete-profile";
+  if (user.role === "LAB" && !user.labProfileCompleted && !onLabCompletePage) {
+    return <Navigate to="/lab/complete-profile" replace />;
+  }
+
   const onPatientCompletePage = location.pathname === "/patient/complete-profile";
   if (user.role === "PATIENT" && !user.healthId && !onPatientCompletePage) {
     return <Navigate to="/patient/complete-profile" replace />;

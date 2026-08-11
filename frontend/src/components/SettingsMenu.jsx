@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 
-export default function SettingsMenu({ profilePath, settingsPath }) {
+export default function SettingsMenu({ profilePath, settingsPath, extraLinks = [] }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -13,11 +13,7 @@ export default function SettingsMenu({ profilePath, settingsPath }) {
 
   return (
     <div className="relative" ref={ref}>
-      <button
-        onClick={() => setOpen(!open)}
-        className="p-2 rounded-full hover:bg-teal-700 text-white"
-        title="Settings"
-      >
+      <button onClick={() => setOpen(!open)} className="p-2 rounded-full hover:bg-teal-700 text-white" title="Settings">
         ⚙️
       </button>
       {open && (
@@ -25,6 +21,11 @@ export default function SettingsMenu({ profilePath, settingsPath }) {
           <Link to={profilePath} onClick={() => setOpen(false)} className="block px-4 py-2.5 text-sm hover:bg-gray-50">
             My Profile
           </Link>
+          {extraLinks.map((link) => (
+            <Link key={link.to} to={link.to} onClick={() => setOpen(false)} className="block px-4 py-2.5 text-sm hover:bg-gray-50 border-t">
+              {link.label}
+            </Link>
+          ))}
           <Link to={settingsPath} onClick={() => setOpen(false)} className="block px-4 py-2.5 text-sm hover:bg-gray-50 border-t">
             Change Password
           </Link>

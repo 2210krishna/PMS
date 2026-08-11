@@ -5,6 +5,8 @@ import { useToast } from "../../context/ToastContext";
 export default function AdminTodayAppointments() {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -14,10 +16,36 @@ export default function AdminTodayAppointments() {
       .finally(() => setLoading(false));
   }, []);
 
+  const filtered = appointments.filter((a) => {
+    const matchesStatus = statusFilter === "ALL" || a.status === statusFilter;
+    const q = search.toLowerCase();
+    const matchesSearch = a.patientName.toLowerCase().includes(q) || a.doctorName.toLowerCase().includes(q) || a.departmentName.toLowerCase().includes(q);
+    return matchesStatus && matchesSearch;
+  });
+
   return (
     <div>
       <h1 className="text-2xl font-bold text-gray-800 mb-1">Today's Appointments</h1>
       <p className="text-gray-500 text-sm mb-6">Every appointment scheduled for today, across all doctors.</p>
+
+      <div className="flex gap-2 mb-4 flex-wrap">
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search patient, doctor, or department..."
+          className="flex-1 min-w-[220px] border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+        />
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+        >
+          <option value="ALL">All statuses</option>
+          <option value="CONFIRMED">Confirmed</option>
+          <option value="COMPLETED">Completed</option>
+          <option value="CANCELLED">Cancelled</option>
+        </select>
+      </div>
 
       <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
         <table className="w-full text-sm">
@@ -33,7 +61,7 @@ export default function AdminTodayAppointments() {
           </thead>
           <tbody>
             {loading && <tr><td colSpan={6} className="px-4 py-6 text-center text-gray-400">Loading...</td></tr>}
-            {!loading && appointments.map((a) => (
+            {!loading && filtered.map((a) => (
               <tr key={a.id} className="border-t">
                 <td className="px-4 py-3 font-medium text-gray-800">{a.timeSlot}</td>
                 <td className="px-4 py-3 text-gray-600">{a.patientName}</td>
@@ -49,8 +77,8 @@ export default function AdminTodayAppointments() {
                 </td>
               </tr>
             ))}
-            {!loading && appointments.length === 0 && (
-              <tr><td colSpan={6} className="px-4 py-6 text-center text-gray-400">No appointments scheduled for today.</td></tr>
+            {!loading && filtered.length === 0 && (
+              <tr><td colSpan={6} className="px-4 py-6 text-center text-gray-400">No appointments match your search.</td></tr>
             )}
           </tbody>
         </table>

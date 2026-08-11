@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import com.pms.backend.dto.*;
 import com.pms.backend.service.AdminService;
 import com.pms.backend.service.DoctorProfileService;
+import com.pms.backend.service.LabService;
 import com.pms.backend.service.PatientService;
 
 import java.util.List;
@@ -20,6 +21,7 @@ public class AdminController {
     private final AdminService adminService;
     private final PatientService patientService;
     private final DoctorProfileService doctorProfileService;
+    private final LabService labService;
 
     @GetMapping("/users")
     public ResponseEntity<List<UserSummaryResponse>> getUsers() {
@@ -54,5 +56,15 @@ public class AdminController {
     @PostMapping("/doctors/{userId}/reset-password")
     public ResponseEntity<CreateDoctorResponse> resetDoctorPassword(@PathVariable Long userId) {
         return ResponseEntity.ok(doctorProfileService.resetPassword(userId));
+    }
+
+    @PostMapping("/lab-technicians")
+    public ResponseEntity<CreateDoctorResponse> addLabTechnician(@Valid @RequestBody CreateDoctorRequest request) {
+        return ResponseEntity.ok(labService.createLabTechnician(request));
+    }
+
+    @GetMapping("/lab-technicians")
+    public ResponseEntity<List<UserSummaryResponse>> getLabTechnicians() {
+        return ResponseEntity.ok(labService.getAllLabTechnicians());
     }
 }

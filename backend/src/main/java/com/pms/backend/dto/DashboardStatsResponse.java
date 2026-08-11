@@ -14,4 +14,5 @@ public class DashboardStatsResponse {
     private long confirmedAppointments;
     private long completedAppointments;
     private long cancelledAppointments;
+    private long totalAppointments;
 }

@@ -27,8 +27,7 @@ public class AppointmentService {
     private final NotificationService notificationService;
 
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-    private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("h:mm a");
-
+    private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("h:mm a", java.util.Locale.ENGLISH);
     public AppointmentResponse book(Long patientUserId, AppointmentRequest req) {
         Patient patient = patientRepository.findByUserId(patientUserId)
                 .orElseThrow(() -> new IllegalArgumentException("Patient profile not found"));

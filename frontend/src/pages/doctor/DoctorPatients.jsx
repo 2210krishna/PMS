@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { Html5Qrcode } from "html5-qrcode";
 import axiosClient from "../../api/axiosClient";
 import { useToast } from "../../context/ToastContext";
+import PrescriptionPager from "../../components/PrescriptionPager";
 
 export default function DoctorPatients() {
   const [searchParams] = useSearchParams();
@@ -204,22 +205,10 @@ export default function DoctorPatients() {
                 </button>
               </form>
 
-              <div className="bg-white rounded-xl shadow-sm border p-6">
-                <h3 className="font-semibold text-gray-800 mb-3">Previous Prescriptions</h3>
-                {history.length === 0 && <p className="text-sm text-gray-400">No previous prescriptions.</p>}
-                {history.map((p) => (
-                  <div key={p.id} className="border-b last:border-0 py-3 text-sm">
-                    <div className="flex justify-between">
-                      <p className="font-medium text-gray-800">{p.diagnosis}</p>
-                      <p className="text-gray-400 text-xs">{p.createdAt}</p>
-                    </div>
-                    {p.cause && <p className="text-gray-600">Cause: {p.cause}</p>}
-                    <p className="text-xs text-gray-400 mt-1">
-                      by Dr. {p.doctorName} — {p.items.map((i) => i.medicineName).join(", ")}
-                    </p>
-                  </div>
-                ))}
-              </div>
+                      <div>
+          <h3 className="font-semibold text-gray-800 mb-3">Previous Prescriptions</h3>
+          <PrescriptionPager prescriptions={history} />
+        </div>
             </>
           )}
         </>

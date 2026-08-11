@@ -5,6 +5,7 @@ import com.pms.backend.entity.*;
 import com.pms.backend.repository.PatientRepository;
 import com.pms.backend.repository.UserRepository;
 import com.pms.backend.repository.DoctorProfileRepository;
+import com.pms.backend.repository.LabProfileRepository;
 import com.pms.backend.security.CustomUserDetails;
 import com.pms.backend.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -29,13 +30,15 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
     private final DoctorProfileRepository doctorProfileRepository;
+    private final LabProfileRepository labProfileRepository;
+
 
     @Value("${google.oauth.client-id:}")
     private String googleClientId;
 
     public AuthResponse register(RegisterRequest req) {
-        if (req.getRole() == Role.DOCTOR) {
-            throw new IllegalArgumentException("Doctor accounts are created by an administrator. Please contact your admin.");
+        if (req.getRole() != Role.PATIENT) {
+            throw new IllegalArgumentException("Only patient self-registration is allowed. Other accounts are created by an administrator.");
         }
         if (userRepository.existsByEmail(req.getEmail())) {
             throw new IllegalArgumentException("Email already registered");
@@ -71,21 +74,21 @@ public class AuthService {
         }
 
         String token = jwtUtil.generateToken(new CustomUserDetails(savedUser), savedUser.getRole().name());
-        return new AuthResponse(token, savedUser.getRole().name(), savedUser.getFullName(), savedUser.getId(), healthId, verificationStatus, null);
-    }
+        return new AuthResponse(token, savedUser.getRole().name(), savedUser.getFullName(), savedUser.getId(), healthId, verificationStatus, null, null);    }
 
     public AuthResponse login(LoginRequest req) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(req.getEmail(), req.getPassword())
         );
-
+    
         User user = userRepository.findByEmail(req.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid credentials"));
-
+    
         String healthId = null;
         String verificationStatus = null;
         Boolean doctorProfileCompleted = null;
-
+        Boolean labProfileCompleted = null;
+    
         if (user.getRole() == Role.PATIENT) {
             Patient p = patientRepository.findByUserId(user.getId()).orElse(null);
             if (p != null) {
@@ -96,10 +99,14 @@ public class AuthService {
             doctorProfileCompleted = doctorProfileRepository.findByUserId(user.getId())
                     .map(DoctorProfile::isProfileCompleted)
                     .orElse(false);
+        } else if (user.getRole() == Role.LAB) {
+            labProfileCompleted = labProfileRepository.findByUserId(user.getId())
+                    .map(com.pms.backend.entity.LabProfile::isProfileCompleted)
+                    .orElse(false);
         }
-
+    
         String token = jwtUtil.generateToken(new CustomUserDetails(user), user.getRole().name());
-        return new AuthResponse(token, user.getRole().name(), user.getFullName(), user.getId(), healthId, verificationStatus, doctorProfileCompleted);
+        return new AuthResponse(token, user.getRole().name(), user.getFullName(), user.getId(), healthId, verificationStatus, doctorProfileCompleted, labProfileCompleted);
     }
 
     public AuthResponse googleAuth(GoogleAuthRequest req) {
@@ -134,7 +141,7 @@ public class AuthService {
         }
 
         String token = jwtUtil.generateToken(new CustomUserDetails(user), user.getRole().name());
-        return new AuthResponse(token, user.getRole().name(), user.getFullName(), user.getId(), healthId, verificationStatus, null);
+        return new AuthResponse(token, user.getRole().name(), user.getFullName(), user.getId(), healthId, verificationStatus, null, null);
     }
 
     private Map<String, Object> verifyGoogleToken(String idToken) {

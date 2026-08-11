@@ -11,6 +11,7 @@ public class AuthResponse {
     private String fullName;
     private Long userId;
     private String healthId;
-    private String verificationStatus;       // WORKER only, else null
-    private Boolean doctorProfileCompleted;   // DOCTOR only, else null
+    private String verificationStatus;
+    private Boolean doctorProfileCompleted;
+    private Boolean labProfileCompleted;
 }

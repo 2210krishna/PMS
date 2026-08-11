@@ -55,8 +55,9 @@ public class AdminService {
         long confirmed = appointmentRepository.countByStatus("CONFIRMED");
         long completed = appointmentRepository.countByStatus("COMPLETED");
         long cancelled = appointmentRepository.countByStatus("CANCELLED");
+        long totalAppointments = appointmentRepository.count();
 
         return new DashboardStatsResponse(totalDoctors, totalPatients, appointmentsToday,
-                appointmentsCompletedToday, patientsBookedToday, confirmed, completed, cancelled);
+                appointmentsCompletedToday, patientsBookedToday, confirmed, completed, cancelled, totalAppointments);
     }
 }

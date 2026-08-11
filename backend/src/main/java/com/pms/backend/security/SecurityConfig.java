@@ -3,6 +3,7 @@ package com.pms.backend.security;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -52,15 +53,16 @@ public class SecurityConfig {
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/uploads/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
-                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/departments/**").authenticated()
-                .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/departments/**").hasRole("ADMIN")
-                .requestMatchers(org.springframework.http.HttpMethod.DELETE, "/api/departments/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/departments/**").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/departments/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/departments/**").hasRole("ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/doctor/**").hasAnyRole("DOCTOR", "ADMIN")
-                .requestMatchers("/api/patient/**").hasAnyRole("PATIENT", "DOCTOR", "ADMIN")
-                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/appointments/today").hasRole("ADMIN")
+                .requestMatchers("/api/lab/**").hasAnyRole("LAB", "ADMIN")
+                .requestMatchers("/api/files/**").authenticated()
+                .requestMatchers("/api/patient/**").hasAnyRole("PATIENT", "DOCTOR", "ADMIN", "LAB")
+                .requestMatchers(HttpMethod.GET, "/api/appointments/today").hasRole("ADMIN")
                 .requestMatchers("/api/appointments/**").authenticated()
                 .requestMatchers("/api/prescriptions/**").authenticated()
                 .requestMatchers("/api/notifications/**").authenticated()
@@ -68,7 +70,7 @@ public class SecurityConfig {
             )
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-    
+
         return http.build();
     }
 

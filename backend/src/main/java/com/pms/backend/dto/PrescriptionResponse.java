@@ -16,4 +16,5 @@ public class PrescriptionResponse {
     private String notes;
     private List<PrescriptionItemDto> items;
     private String createdAt;
+    private List<MedicalFileResponse> files;
 }

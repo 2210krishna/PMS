@@ -4,7 +4,7 @@ import { useToast } from "../context/ToastContext";
 import NotificationBell from "./NotificationBell";
 import SettingsMenu from "./SettingsMenu";
 
-export default function SidebarLayout({ title, links, children, profilePath, settingsPath }) {
+export default function SidebarLayout({ title, links, children, profilePath, settingsPath, extraLinks = [] }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { showToast } = useToast();
@@ -43,8 +43,8 @@ export default function SidebarLayout({ title, links, children, profilePath, set
 
           <div className="flex items-center gap-2 shrink-0 ml-auto">
             <NotificationBell />
-            <SettingsMenu profilePath={profilePath} settingsPath={settingsPath} />
-            <div className="text-right hidden lg:block">
+            <SettingsMenu profilePath={profilePath} settingsPath={settingsPath} extraLinks={extraLinks} />
+                        <div className="text-right hidden lg:block">
               <p className="text-sm font-medium leading-tight whitespace-nowrap">{user?.fullName}</p>
               <p className="text-xs text-teal-300 leading-tight">{user?.role}</p>
             </div>
